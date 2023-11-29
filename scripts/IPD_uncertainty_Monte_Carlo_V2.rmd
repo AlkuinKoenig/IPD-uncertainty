@@ -11,20 +11,21 @@ Created by Alkuin Koenig <alkuin.koenig@gmx.de>
 2023/09/13
 
 ### user input
+##This version takes relative uncertainties. 
 ```{r}
 library(here)# neat library for relative paths
 
 #path to the excel sheet containing information about the isotope abundancies & their uncertainties (the "key" matrix)
 input_key_xlxs = paste0(here::here(),"/data_input/isotope_keys_testfile_AK.xlsx")
 #path to the excel sheet containing information about the samples (peak area, sample volume, etc) and uncertainties
-input_data_xlxs = paste0(here::here(),"/data_input/sample_data_testfile_AK.xlsx")
+input_data_xlxs = paste0(here::here(),"/data_input/sample_data_testfile_AK_rel.xlsx")
 # number of repetitions for the Monte Carlo simulation
 MC_iterations = 1e4 
 
 #set flag below to TRUE if you want to create a grouped output (containing infomration for samples grouped together)
 write_grouped_output = TRUE
 #set flag below to TRUE if you want to create an individual output (containing information for each individual sample)
-write_individual_output = FALSE
+write_individual_output = TRUE
 #set flag below to TRUE if you want to create an output concerning the uncertainty of the deconvolution step only (not calculating until final concentrations)
 write_deconvolution_output = TRUE
 #set flag below to TRUE if you want to create an output concerning the uncertainty of the whole calculation step (i.e. calculation until final concentration)
@@ -67,7 +68,7 @@ SaSpiMean = openxlsx::read.xlsx(input_data_xlxs, sheet = "Sample and Spike mean"
 SaSpiUncert = openxlsx::read.xlsx(input_data_xlxs, sheet = "Sample and Spike uncertainty",startRow=2)
 
 #importing the data uncertainties, if they exist. If nothing found, then return 0 as uncertainties.
-peakareas.uncert = tryCatch(expr={openxlsx::read.xlsx(input_data_xlxs, sheet = "peak area uncertainties abs",startRow=2)},
+peakareas.uncert = tryCatch(expr={openxlsx::read.xlsx(input_data_xlxs, sheet = "peak area uncertainties rel",startRow=2)},
                        error=function(e){
                          message("No uncertainties found for input data. Setting uncertainties to 0.")
                          return(peakareas %>% dplyr::mutate_all(function(x){0}))
@@ -182,7 +183,7 @@ for (k in 1:MC_iterations){
   temp_key.norm.m = key_trans.l[[k]]*temp.normfac.m
   
   #transmute the peak area data
-  data_trans.l[[k]] = rnorm(length(peakareas.m), mean = peakareas.m, sd = peakareas.uncert.m) %>%
+  data_trans.l[[k]] = rnorm(length(peakareas.m), mean = peakareas.m, sd = peakareas.m * peakareas.uncert.m) %>% #note the relative uncertainties
     matrix(nrow=dim(peakareas.m)[1],ncol=dim(peakareas.m)[2])
   
   #and finally solve. Note that we only take a subset of the matrix, if not all isotopes were measured
@@ -246,10 +247,12 @@ summarise_results = function(input.l, peakareas, indices_isotopes_measured, MC_i
   #calculate overview statistics for the individual output (each sample treated differently)
   input.df_individual.s = input.df%>%
     dplyr::group_by(varname)%>%
-    dplyr::summarise(across(.cols = contains("Sample"), .fns = list(mean=~mean(.,na.rm=TRUE),
+    dplyr::summarise(across(.cols = contains("Sample"), .fns = list(mean =~mean(.,na.rm=TRUE),
                                                                     uncert_k2 =~2*sd(.,na.rm=TRUE),
-                                                                    sd = ~sd(.,na.rm=TRUE),
-                                                                    median=~median(.,na.rm=TRUE),
+                                                                    sd =~sd(.,na.rm=TRUE),
+                                                                    rel_sd =~sd(.,na.rm=TRUE)/mean(.,na.rm=TRUE),
+                                                                    median =~median(.,na.rm=TRUE),
+                                                                    iqr =~IQR(.,na.rm=TRUE),
                                                                     q025 =~quantile(.,0.025),
                                                                     q975 =~quantile(.,0.975))))
   
@@ -259,7 +262,9 @@ summarise_results = function(input.l, peakareas, indices_isotopes_measured, MC_i
     dplyr::summarise(across(.cols = "value", .fns = list(mean=~mean(.,na.rm=TRUE),
                                                          uncert_k2 =~2*sd(.,na.rm=TRUE),
                                                          sd = ~sd(.,na.rm=TRUE),
+                                                         rel_sd =~sd(.,na.rm=TRUE)/mean(.,na.rm=TRUE),
                                                          median=~median(.,na.rm=TRUE),
+                                                         iqr =~IQR(.,na.rm=TRUE),
                                                          q025 =~quantile(.,0.025),
                                                          q975 =~quantile(.,0.975))))
   
@@ -304,7 +309,7 @@ write_output_individual = function(fname_out, df_individual.s, results.l){
   addWorksheet(wb, sheetName="solved-noMC")
   writeData(wb, sheet="solved-noMC", results.l[[1]]%>%as.data.frame())
   
-  for (k in c("mean","uncert_k2","sd","median","q025","q975")){
+  for (k in c("mean","uncert_k2","sd","rel_sd","median","iqr","q025","q975")){
     tempout = df_individual.s %>% dplyr::select(contains(k))%>%
       dplyr::rename_all(function(x){gsub(paste0("_",k),"",x)})
     
