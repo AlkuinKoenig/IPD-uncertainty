@@ -16,11 +16,11 @@ Created by Alkuin Koenig <alkuin.koenig@gmx.de>
 library(here)# neat library for relative paths
 
 #path to the excel sheet containing information about the isotope abundancies & their uncertainties (the "key" matrix)
-input_key_xlxs = paste0(here::here(),"/data_input/isotope_keys_testfile_AK.xlsx")
+input_key_xlxs = paste0(here::here(),"/data_input/isotope_keys_testfile_AK_V2.xlsx")
 #path to the excel sheet containing information about the samples (peak area, sample volume, etc) and uncertainties
-input_data_xlxs = paste0(here::here(),"/data_input/sample_data_testfile_AK_rel.xlsx")
+input_data_xlxs = paste0(here::here(),"/data_input/sample_data_testfile_AK_rel_V2.xlsx")
 # number of repetitions for the Monte Carlo simulation
-MC_iterations = 1e4 
+MC_iterations = 1e2
 
 #set flag below to TRUE if you want to create a grouped output (containing infomration for samples grouped together)
 write_grouped_output = TRUE
