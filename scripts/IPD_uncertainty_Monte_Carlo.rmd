@@ -1,17 +1,23 @@
 ---
-title: "Isotope deconvolution notebook"
+title: "IPD-uncertainty notebook"
 output:
   html_document:
     df_print: paged
     code_folding: show
 ---
 
-Version 1
-Created by Alkuin Koenig <alkuin.koenig@gmx.de>
-2023/09/13
+Version history: 
+  Version 1.0
+  Created by Alkuin Koenig <alkuin.koenig@gmx.de>
+  2023/09/13
+  
+  Version 1.1
+  Updated by Alkuin Koenig <alkuin.koenig@gmx.de>
+  2024/05/30
+
 
 ### user input
-##This version takes relative uncertainties. 
+##Version 1.1 takes relative uncertainties. 
 ```{r}
 library(here)# neat library for relative paths
 
