@@ -357,8 +357,8 @@ write_output_grouped = function(fname_out, df_grouped.s, df_uncertainties_summar
   addWorksheet(wb, sheetName="Metadata")
   writeData(wb, sheet="Metadata", attributes(metadata)%>%as.matrix,colNames=FALSE, rowNames=TRUE)
   
-  addWorksheet(wb, sheetName="Overall uncertainties")
-  writeData(wb, sheet="Overall uncertainties", df_uncertainties_summarised)
+  addWorksheet(wb, sheetName="Summarized uncertainties")
+  writeData(wb, sheet="Summarized uncertainties", df_uncertainties_summarised)
   
   for (k in unique(df_grouped.s$group)){
     tempout = df_grouped.s %>% dplyr::filter(group==k)%>%dplyr::select(!group)
