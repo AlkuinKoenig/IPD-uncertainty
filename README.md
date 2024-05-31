@@ -1,5 +1,5 @@
 # IPD-uncertainty
-Uncertainty calculation for the matrix inversion of the isotope pattern deconvolution technique, using a Monte Carlo approach. Questions can be directed to alkuin.koenig@gmx.de
+Uncertainty calculation for the matrix inversion of the isotope pattern deconvolution technique, using a Monte Carlo (MC) approach. Questions can be directed to alkuin.koenig@gmx.de
 
 **Important notes:**
 - For convenience, data input and output is managed through excel files (.xlsx).
